@@ -1,0 +1,68 @@
+<div class="container">
+ <%- model_class = Item -%>
+  <div class="page-header">
+    <h1><%=t '.title', :default => model_class.model_name.human.pluralize.titleize %></h1>
+  </div>
+ <%= form_tag("/search_items", method: "get", :class => 'form-inline') do %>
+     <div class="form-group">
+       <%= label_tag("I'm looking for") %>
+       <%= text_field_tag :search, params[:search], class: 'form-control' %>
+       <%= label_tag("near") %>
+       <%= text_field_tag :search_loc, params[:search_loc], class: 'form-control' %>
+       <%= submit_tag("Search", :class => 'btn btn-primary') %>
+     </div>
+ <% end %>
+ <% if @items.present? %>
+     <br><p><b>These items are present</b></p>
+     <table class="table table-striped">
+       <thead>
+       <tr>
+         <th><%= model_class.human_attribute_name(:id) %></th>
+         <th><%= model_class.human_attribute_name(:name) %></th>
+         <th><%= model_class.human_attribute_name(:category) %></th>
+         <th><%= model_class.human_attribute_name(:model) %></th>
+         <th><%= model_class.human_attribute_name(:age) %></th>
+         <th><%= model_class.human_attribute_name(:location) %></th>
+         <th><%= model_class.human_attribute_name(:min_loan_period) %></th>
+         <th><%= model_class.human_attribute_name(:max_loan_period) %></th>
+         <th><%= model_class.human_attribute_name(:deposit) %> (£)</th>
+         <th><%= "Loan Amount (£)" %></th>
+         <th><%= "Distance (miles)" %></th>
+       </tr>
+       </thead>
+       <tbody>
+       <% @items.each do |item| %>
+           <tr>
+             <td><b><%= link_to item.id, item_path(item) %></b></td>
+             <td><b><%= link_to item.name.upcase, item_path(item) %></b></td>
+             <td><%= item.category %></td>
+             <td><%= item.model %></td>
+             <td><%= item.age %></td>
+             <td><%= item.location %></td>
+             <td><%= item.min_loan_period %></td>
+             <td><%= item.max_loan_period %></td>
+             <td><%= item.deposit %></td>
+             <td><%= item.rental_rate %></td>
+             <td>
+               <% if params[:search_loc].present? %>
+                   <%= number_with_precision(item.distance_from(Geocoder.coordinates("#{params[:search_loc].to_s}")), precision: 1) %>
+               <% else %>
+                   <%= "N/A" %>
+               <% end %>
+             </td>
+           </tr>
+       <% end %>
+       </tbody>
+     </table>
+
+ <% elsif params[:search_loc].present? %>
+     <br><p><b>Unfortunately, there are no such items within 200 miles of you.</b></p>
+ <% else %>
+     <br><p><b>Unfortunately, there are no items containing the term</b> <%= params[:search] %>.</p>
+ <% end %>
+
+  <%= link_to t('.new', :default => t("helpers.links.new")),
+              new_item_path,
+              :class => 'btn btn-primary' %>
+
+</div>

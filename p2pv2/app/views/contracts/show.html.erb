@@ -1,0 +1,50 @@
+<div class="container">
+  <%- model_class = Contract -%>
+  <div class="page-header">
+    <h1><%=t '.title', :default => model_class.model_name.human.titleize %></h1>
+  </div>
+
+
+  <% if (@contract.contract_address == '' && @contract.loaned_out != nil) %>
+    <%= link_to t('.back', :default => t("helpers.links.back")),
+                  contracts_path, :class => 'btn btn-default'  %>
+  <% end %>
+
+  <dl class="dl-horizontal">
+    <dt><strong><%= model_class.human_attribute_name(:item_id) %>:</strong></dt>
+    <dd>
+      <% @item = Item.find(@contract.item_id) %>
+      <%= @item.name %>
+    </dd>
+    <dt><strong><%= model_class.human_attribute_name(:lender_id) %>:</strong></dt>
+    <dd>
+      <% @user = User.find(@contract.lender_id) %>
+      <%= @user.name_first %>
+    </dd>
+    <dt><strong><%= model_class.human_attribute_name(:inquirer_id) %>:</strong></dt>
+    <dd>
+      <% @user = User.find(@contract.inquirer_id) %>
+      <%= @user.name_first %>
+    </dd>
+    <dt><strong><%= model_class.human_attribute_name(:loaned_out) %>:</strong></dt>
+    <dd><%= @contract.loaned_out %></dd>
+    <dt><strong><%= model_class.human_attribute_name(:returned) %>:</strong></dt>
+    <dd><%= @contract.returned %></dd>
+    <dt><strong><%= model_class.human_attribute_name(:deposit) %> (£):</strong></dt>
+    <dd><%= @contract.deposit %></dd>
+    <dt><strong><%= model_class.human_attribute_name(:rental_rate) %> (£/day):</strong></dt>
+    <dd><%= @contract.rental_rate %></dd>
+    
+    <br>
+    <dt><strong>Contract Address:</strong></dt>
+    <dd><%= @contract.contract_address %></dd>
+    <dt><strong><%= model_class.human_attribute_name(:updated_at) %>:</strong></dt>
+    <dd><%= @contract.updated_at %></dd>
+    <dt><strong><%= model_class.human_attribute_name(:created_at) %>:</strong></dt>
+    <dd><%= @contract.created_at %></dd>
+
+  </dl>
+
+
+</div>
+

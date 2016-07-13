@@ -1,0 +1,69 @@
+<%= form_for @contract, :html => { :class => "form-horizontal contract",
+  } do |f| %>
+
+  <% if @contract.errors.any? %>
+    <div id="error_expl" class="panel panel-danger">
+      <div class="panel-heading">
+        <h3 class="panel-title"><%= pluralize(@contract.errors.count, "error") %> prohibited this inquiry from being saved:</h3>
+      </div>
+      <div class="panel-body">
+        <ul>
+        <% @contract.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+  
+  <h5>Check contract terms:</h5>
+  <br>
+  
+  <dl class="dl-horizontal">
+    <dt><strong>Item Name:</strong></dt>
+    <dd><%= @name %></dd>
+    <dt><strong>Item Id:</strong></dt>
+    <dd><%= @contract.item_id %></dd>
+
+    <br/>
+    <dt><strong>Deposit (£):</strong></dt>
+    <dd><%= @contract.deposit %></dd>
+    <dt><strong>Loan Amount (£):</strong></dt>
+    <dd><%= @contract.rental_rate %></dd>
+    
+    <br/>
+    <dt><strong>Inquirer:</strong></dt>
+    <dd><%= current_user.name_first %></dd>
+    <dt><strong>Lender:</strong></dt>
+    <dd><%= User.find(@contract.lender_id).name_first %></dd>
+    
+    <br/>
+    <dt><strong>Min Loan Period:</strong></dt>
+    <dd><%= @min_loan_period %></dd>
+    <dt><strong>Max Loan Period:</strong></dt>
+    <dd><%= @max_loan_period %></dd>
+    
+  </d1>
+  <br />
+
+  <div class="form-group">
+    <div class="col-lg-offset-2 col-lg-10">
+      <%= link_to 'Inquire Now', {:controller => "contracts", :action => "create",
+                :contract => {
+                :item_id => @contract.item_id,
+                :lender_id => @contract.lender_id,
+                :inquirer_id => @contract.inquirer_id,
+                :key => @contract.key,
+                :loaned_out => @contract.loaned_out,
+                :returned => @contract.returned,
+                :deposit => @contract.deposit,
+                :rental_rate => @contract.rental_rate}},
+                :method => "post",
+                :class => 'btn btn-default' %>
+      <%= link_to t('.cancel', :default => t("helpers.links.cancel")),
+                contracts_path, :class => 'btn btn-default' %>
+    </div>
+  </div>
+
+<% end %>
+

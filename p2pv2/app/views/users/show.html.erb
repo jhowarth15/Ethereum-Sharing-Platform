@@ -1,0 +1,286 @@
+<div class="container">
+<DIV style="position:absolute; top:100px; left:10%; width:78%;">
+
+<% provide(:title, @user.name_first) %> <!== Change this to username  ==>
+
+<%= javascript_include_tag('node_modules/web3/node_modules/bignumber.js/bignumber.min.js') %>
+<%= javascript_include_tag('node_modules/web3/dist/web3-light.js') %>
+<%= javascript_include_tag('displayBalance.js') %>
+
+<h2>Account Details</h2>
+<div class="row">
+		<div class="col-md-1">
+                	<%= gravatar_for @user %>
+			
+		</div>
+		<div class="col-md-1">
+			<%= link_to t('.edit', :default => t("helpers.links.edit")),edit_user_path(@user), :class => 'btn btn-default' %>
+		</div>
+
+	<div class="col-md-6">
+		<%- model_class = User -%>
+  
+		<dl class="dl-horizontal">
+
+    		<dt><strong><%= model_class.human_attribute_name(:username) %>:</strong></dt>
+    		<dd><%= @user.username %></dd>
+    		<dt><strong><%= model_class.human_attribute_name("First Name") %>:</strong></dt>
+    		<dd><%= @user.name_first %></dd>
+    		<dt><strong><%= model_class.human_attribute_name("Last Name") %>:</strong></dt>
+    		<dd><%= @user.name_last %></dd>
+    		<dt><strong><%= model_class.human_attribute_name(:email) %>:</strong></dt>
+    		<dd><%= @user.email %></dd>
+		<dt><strong><%= model_class.human_attribute_name("Ether Account") %>:</strong></dt>
+  		<dd> <div id="accNo"><%= @user.ether_account %></div> </dd>
+		</dl>
+	</div>
+	<div class="col-md-4">
+	
+		<button class='btn btn-primary' type="button" onClick="watchBalance();"> Check My Balance </button>
+		<div id="accBal"></div>
+		<div id="accBalGBP"></div>
+	</div>
+</div>
+
+
+<div class="row">             
+
+<h2>My Items</h2>
+</div>
+<table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Category</th>
+        <th>Model</th>
+        <th>Age (Years)</th>
+        <th>Location</th>
+        <th>Min Loan Period (Days)</th>
+        <th>Max Loan Period (Days)</th>
+        <th>Deposit (£)</th>
+        <th>Loan Amount (£)</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @items.each do |item| %>
+        <tr>
+          <td><%= item.name %></td>
+          <td><%= item.category %></td>
+          <td><%= item.model %></td>
+          <td><%= item.age %></td>
+          <td><%= item.location %></td>
+          <td><%= item.min_loan_period %></td>
+          <td><%= item.max_loan_period %></td>
+          <td><%= item.deposit %></td>
+          <td><%= item.rental_rate %></td>
+          <td>
+            <%= link_to t('.edit', :default => t("helpers.links.edit")),
+                       edit_item_path(item), :class => 'btn btn-default btn-xs' %>
+            <%= link_to t('.destroy', :default => t("helpers.links.destroy")),
+                        item_path(item),
+                        :method => :delete,
+                        :data => { :confirm => t('.confirm', :default => t("helpers.links.confirm", :default => 'Are you sure?')) },
+                        :class => 'btn btn-xs btn-danger' %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  
+  <h2>My Contracts</h2>
+  <h4>Your borrows:</h4>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Item</th>
+        <th>Lender</th>
+        <th>Email</th>
+        <th>Deposit (£)</th>
+        <th>Loan Amount (£)</th>
+        <th>Date Loaned Out</th>
+        <th>Return Date</th>
+        <th>Key Code</th>
+	<th>ChainControl</th>
+        <th>Action</th>
+        <th>Eth Address</th>
+	<th>Status</th>
+
+      </tr>
+    </thead>
+    <tbody>
+      <% @inquirer_contracts.each do |contract| %>
+      <%= form_for contract,
+      :url => url_for(:action => 'initiate', :controller => 'contracts'),
+      :method => 'put' do |f| %>
+      
+
+        <tr>
+          <td>
+            <% if contract.loaned_out == nil %>
+              Inquired
+            <% end %>
+            <% if contract.loaned_out != nil && contract.returned == nil%>
+              Borrowing
+            <% end %>
+            <% if contract.loaned_out != nil && contract.returned != nil %>
+              Completed
+            <% end %>
+          </td>
+          <td>
+            <% @item = Item.find(contract.item_id) %>
+            <%= @item.name %>
+          </td>
+          <td>
+            <% @user = User.find(contract.lender_id) %>
+            <%= @user.name_first %>
+          </td>
+          <td>
+            <% @user = User.find(contract.lender_id) %>
+            <%= @user.email %>
+          </td>
+          <td><%= contract.deposit %></td>
+          <td><%= contract.rental_rate %></td>
+          <td><%= contract.loaned_out %></td>
+          <td><%= contract.returned %></td>
+
+
+          <% if contract.loaned_out != nil && contract.returned == nil%>
+            <td><%= contract.key %></td>
+            <td></td>
+            <td>Return Item</td>
+            <td><%= contract.contract_address %></td>
+          <% end %>
+
+          
+          <% if contract.loaned_out != nil && contract.returned != nil %>
+            <td><%= contract.key %></td>
+            <td></td>
+            <td>Done</td>
+	          <td><%= contract.contract_address %></td>
+            
+          <% end %>
+          
+
+
+          <% if contract.loaned_out == nil && (contract.contract_address==nil || contract.contract_address == "") %>	  
+            <td><%= f.text_field_tag 'input' %></td>
+            <%= f.hidden_field_tag 'id', contract.id %>
+	          <td>
+	            <button class='btn btn-default' type="button" onClick="createExampleContract();"> SubmitToChain</button></td>
+            <td><%= f.submit :DBsave, :class => 'btn btn-default' %></td>
+            <td><INPUT TYPE="text" ID="contractAddress" NAME="eth_address" VALUE=""></td>
+            <td><div id="status"></div></td>
+          <% end %>
+
+        <% if contract.loaned_out != nil %>  
+          <td></td>
+
+    	  <% end %>
+    	  
+    	  
+
+
+        </tr>
+      <% end %>
+      <% end %>
+    </tbody>
+  </table>
+
+<div id="ethLendNo" style="color:white;"> <%= @user.ether_account %> </div>
+
+<h4>Your Lends:</h4>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>Item</th>
+        <th>Inquirer</th>
+        <th>Deposit (£)</th>
+        <th>Loan Amount (£)</th>
+        <th>Date Loaned Out</th>
+        <th>Return Date</th>
+        <th>Key Code</th>
+        <th>Action</th>
+        <th>ChainControl</th>
+        <th>Eth Address</th>
+	<th>Status</th>
+
+      </tr>
+    </thead>
+    <tbody>
+      <% @lender_contracts.each do |contract| %>
+      <%= form_for contract,
+      :url => url_for(:action => 'returned', :controller => 'contracts'),
+      :method => 'put' do |f| %>
+
+      <% @inquirer=User.find(contract.inquirer_id) %> 
+
+        <tr>
+          <td>
+            <% if contract.loaned_out == nil %>
+              Received inquiry
+            <% end %>
+            <% if contract.loaned_out != nil && contract.returned == nil%>
+              Loaned out
+            <% end %>
+            <% if contract.loaned_out != nil && contract.returned != nil %>
+              Completed
+            <% end %>
+          </td>
+          <td>
+            <% @item = Item.find(contract.item_id) %>
+            <%= @item.name %>
+          </td>
+          <td>
+            <% @user = User.find(contract.inquirer_id) %>
+            <%= @user.name_first %>
+          </td>
+          <td><%= contract.deposit %></td>
+          <td><%= contract.rental_rate %></td>
+          <td><%= contract.loaned_out %></td>
+          <td><%= contract.returned %></td>
+          <td>
+            <%= contract.key %>
+          </td>
+          <% if contract.loaned_out == nil %>
+            <td>Provide code</td>
+          <% end %>
+          
+          <% if contract.loaned_out != nil && contract.returned == nil%>
+            <%= f.hidden_field_tag 'id', contract.id %>
+            <td><%= f.submit :Returned, :class => 'btn btn-default' %></td>
+          <% end %>
+          
+          
+          <% if contract.loaned_out != nil && contract.returned != nil %>
+            <td>Done</td>
+          <% end %>
+
+	  <td>
+	    <button class='btn btn-default' type="button" onClick="closeContract();"> SubmitToChain</button>
+	  </td>
+          
+          <td>
+            <div id='contractAddr'><%= contract.contract_address %></div>
+          </td>
+
+	  <td>
+	    <div id="status"></div>	    
+	  </td>
+          
+          <% end %>
+          
+
+        </tr>
+	<div id="ethBorrNo" style="color:white;"> <%= @inquirer.ether_account %> </div>
+      <% end %>
+    </tbody>
+  </table>
+
+  
+  
+  <div><button class='btn btn-default' type="button" onClick="depositReturn();"> GetRefund</button></div>
+
+  <br>
